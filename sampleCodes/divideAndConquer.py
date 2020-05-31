@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from math import sqrt as sqrt
 
 #def countSplitInv(arr, n):
 
@@ -94,6 +95,81 @@ def matmulEqualSize(x, y):
     pass
 
 
+def getDistance(p1, p2):
+    return sqrt( (p2[0] - p1[0])**2 + (p2[1] - p1[1])**2 )
+
+def getClosestSplitPair(stripArr, delta):
+    
+    minDistance = delta
+    minPair = None
+    for i in range(len(stripArr) - 7):
+        for j in range(i+1, i+8):
+            d = getDistance(stripArr[i], stripArr[j])
+            if d < minDistance:
+                minPair = [stripArr[i], stripArr[j]]
+                minDistance = d
+    
+    return minPair, minDistance
+    pass
+
+
+def getClosestPair(sortedX):
+    
+    if (len(sortedX) == 2):
+        return sorted(sortedX , key=lambda k: [k[0], k[1]]), getDistance(sortedX[0], sortedX[1]), sorted(sortedX , key=lambda k: k[1])
+    
+    l = len(sortedX)//2
+    points1, d1, sortedY1 = getClosestPair(sortedX[:l])
+    points2, d2, sortedY2 = getClosestPair(sortedX[l:])
+    
+    if d1 < 0 or d2 < 0:
+        return points1 if d1 == 0 else points2, 0, None
+    
+    xmean = (sortedX[l-1][0] + sortedX[l][0])/2
+    delta = min(d1, d2)
+    
+    index1 = 0
+    index2 = 0
+    sortedY = []
+    stripArr = []
+    for i in range(len(sortedX)):
+        if index1 < len(sortedY1) and index2 < len(sortedY2):
+            if sortedY1[index1][1] <= sortedY2[index2][1]:
+                sortedY.append(sortedY1[index1])
+                index1 += 1
+            else:
+                sortedY.append(sortedY2[index2])
+                index2 += 1
+        elif index1 >= len(sortedY1):
+            sortedY.extend(sortedY2[index2:])
+            break
+        else:
+            sortedY.extend(sortedY1[index1:])
+            break
+#    print(sortedY1, sortedY2,sortedY)
+    for i in range(len(sortedY)):
+        if sortedY[i][0] <= xmean + delta and sortedY[i][0] >= xmean - delta:
+            stripArr.append(sortedY[i])
+            
+    pointsSplit, dSplit = getClosestSplitPair(stripArr, delta)
+    
+    if dSplit < min(d1, d2) and pointsSplit is not None:
+        return pointsSplit, dSplit, sortedY
+    elif d1 < d2:
+        return points1, d1, sortedY
+    else:
+        return points2, d2, sortedY
+    
+    pass
+
+
+def closestPair(arr):
+    sortedX = sorted(arr, key=lambda p: p[0])
+#    sortedY = sorted(arr, key=lambda p: p[1])
+    return getClosestPair(sortedX)
+    pass
+
+
 if __name__ == '__main__':
     
     arr = [1, 3, 5, 7, 9, 2, 2, 4]
@@ -114,6 +190,7 @@ if __name__ == '__main__':
             [0, 0, 0, 1],
             ]
     
-    print(matmulEqualSize(x, y))
+#    print(matmulEqualSize(x, y))
     
-    
+    points = [[1, 2], [3, 4], [3, 3], [2, 2]]
+    print(closestPair(points))
